@@ -1,0 +1,66 @@
+perplexity-md-to-pdf() {
+    local language="en-US"
+    local md_in=""
+    
+    # Parse command line arguments
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -l|--language)
+                language="$2"
+                shift 2
+                ;;
+            -h|--help)
+                echo "Usage: perplexity-md-to-pdf [-l|--language LANGUAGE] <markdown_file>"
+                echo "  -l, --language LANGUAGE  Language code for citations (default: en-US)"
+                echo "                          Use 'de' for German, 'en' for English"
+                echo "  -h, --help              Show this help message"
+                return 0
+                ;;
+            -*)
+                echo "Unknown option: $1" >&2
+                echo "Use -h or --help for usage information" >&2
+                return 1
+                ;;
+            *)
+                if [[ -z "$md_in" ]]; then
+                    md_in="$1"
+                else
+                    echo "Error: Multiple input files specified" >&2
+                    return 1
+                fi
+                shift
+                ;;
+        esac
+    done
+    
+    # Check if input file is provided
+    if [[ -z "$md_in" ]]; then
+        echo "Error: No input file specified" >&2
+        echo "Usage: perplexity-md-to-pdf [-l|--language LANGUAGE] <markdown_file>" >&2
+        return 1
+    fi
+    
+    # Check if input file exists
+    if [[ ! -f "$md_in" ]]; then
+        echo "Error: Input file '$md_in' does not exist" >&2
+        return 1
+    fi
+    
+    pdf_out=$(dirname "$md_in")/$(basename "$md_in" .md).pdf
+    cat "$md_in" \
+        | perplexity-preprocess-md.py -l "$language" \
+        | pandoc \
+            --from=markdown \
+            --to=pdf \
+            -o "$pdf_out" \
+            --pdf-engine=xelatex \
+            --citeproc \
+            -V mainfont="DejaVu Serif" \
+            -V geometry:landscape \
+            -V geometry:a4paper \
+            -V geometry:margin=1.5cm \
+            -V geometry:columnsep=1cm \
+            -V classoption:twocolumn
+}
+
+

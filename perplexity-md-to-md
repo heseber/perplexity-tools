@@ -1,0 +1,7 @@
+perplexity-md-to-md() {
+    md_in="$1"
+    md_out=$(dirname "$md_in")/$(basename "$md_in" .md)-fixed.md
+    cat "$md_in" \
+        | sed -E 's/\\\$  *(([^\$]*|(\\[^$][^\$]*))*)  *\\\$/$\1$/g' \
+        > "$md_out"
+}
