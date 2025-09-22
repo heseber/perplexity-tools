@@ -151,6 +151,10 @@ def preprocess_markdown(markdown_content, language="en-US"):
         if "lang:" not in yaml_content:
             yaml_content += f"\nlang: {language}\n"
 
+        # Add link-citations option if not already present
+        if "link-citations:" not in yaml_content:
+            yaml_content += "\nlink-citations: true\n"
+
         # Reconstruct document with updated YAML
         content_updated = f"---\n{yaml_content}---\n{document_content}"
     elif unique_references and not yaml_start:
@@ -163,6 +167,7 @@ def preprocess_markdown(markdown_content, language="en-US"):
         # Add Nature citation style (clean numbered style)
         yaml_content += "\ncsl: https://raw.githubusercontent.com/citation-style-language/styles/master/nature.csl\n"
         yaml_content += f"\nlang: {language}\n"
+        yaml_content += "\nlink-citations: true\n"
         yaml_content += "---\n\n"
         content_updated = yaml_content + document_content
 
