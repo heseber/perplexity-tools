@@ -95,8 +95,10 @@ def preprocess_markdown(markdown_content, language="en-US"):
     math_pattern = r"\\\$  *(([^\$]*|(\\[^$][^\$]*))*)  *\\\$"
     content_updated = re.sub(math_pattern, r"$\1$", content_updated)
 
-    # Fix centered divs - convert <div style="text-align: center">content</div> to LaTeX centering
-    centered_div_pattern = r'<div style="text-align: center">(.*?)</div>'
+    # Fix centered divs - convert <div style="text-align: center">content</div> and <div align="center">content</div> to LaTeX centering
+    centered_div_pattern = (
+        r'<div (?:style="text-align: center"|align="center")>(.*?)</div>'
+    )
     content_updated = re.sub(
         centered_div_pattern, r"\\begin{center}\n\1\n\\end{center}", content_updated
     )
