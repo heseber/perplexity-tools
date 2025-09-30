@@ -15,7 +15,7 @@ def preprocess_markdown(markdown_content, language="en-US"):
     The output uses Pandoc's citation format:
     - In-text citations: [@ref1] (will be converted to numbered references by Pandoc)
     - Bibliography entries: Added to YAML front matter for proper Pandoc processing
-    - Math expressions: Converts \\$ ... \$ to $ ... $ for proper LaTeX rendering
+    - Math expressions: Converts \\$ ... \\$ to $ ... $ for proper LaTeX rendering
 
     To get numbered citations in PDF output, use: pandoc --citeproc input.md -o output.pdf
     Uses Nature citation style which provides clean numbered formatting for web resources.
