@@ -6,6 +6,187 @@ import sys
 from collections import OrderedDict
 
 
+def detect_language(markdown_content):
+    """
+    Detects the language of the markdown content (German or English).
+    Uses simple heuristics based on common German and English words.
+
+    Args:
+        markdown_content (str): The markdown content to analyze
+
+    Returns:
+        str: 'de' for German, 'en' for English (defaults to 'de')
+    """
+    # German indicators
+    german_words = [
+        "der",
+        "die",
+        "das",
+        "und",
+        "ist",
+        "in",
+        "zu",
+        "den",
+        "von",
+        "mit",
+        "auf",
+        "für",
+        "an",
+        "als",
+        "aus",
+        "durch",
+        "über",
+        "unter",
+        "zwischen",
+        "wird",
+        "werden",
+        "haben",
+        "hat",
+        "kann",
+        "können",
+        "soll",
+        "sollte",
+        "nicht",
+        "nur",
+        "auch",
+        "noch",
+        "schon",
+        "immer",
+        "sehr",
+        "mehr",
+        "wenn",
+        "dass",
+        "wie",
+        "was",
+        "wo",
+        "warum",
+        "wenn",
+        "dann",
+        "aber",
+        "oder",
+        "sowie",
+        "beispielsweise",
+        "insbesondere",
+        "jedoch",
+        "deshalb",
+    ]
+
+    # English indicators
+    english_words = [
+        "the",
+        "and",
+        "is",
+        "in",
+        "to",
+        "of",
+        "a",
+        "that",
+        "it",
+        "with",
+        "for",
+        "as",
+        "was",
+        "on",
+        "are",
+        "but",
+        "not",
+        "you",
+        "all",
+        "can",
+        "had",
+        "her",
+        "was",
+        "one",
+        "our",
+        "out",
+        "day",
+        "get",
+        "has",
+        "him",
+        "his",
+        "how",
+        "its",
+        "may",
+        "new",
+        "now",
+        "old",
+        "see",
+        "two",
+        "way",
+        "who",
+        "boy",
+        "did",
+        "man",
+        "men",
+        "put",
+        "say",
+        "she",
+        "too",
+        "use",
+    ]
+
+    # Convert to lowercase and split into words
+    content_lower = markdown_content.lower()
+    words = re.findall(r"\b\w+\b", content_lower)
+
+    # Count German and English word occurrences
+    german_count = sum(1 for word in words if word in german_words)
+    english_count = sum(1 for word in words if word in english_words)
+
+    # Return 'en' if English words are more frequent, otherwise 'de'
+    return "en" if english_count > german_count else "de"
+
+
+def replace_first_heading(markdown_content):
+    """
+    Replaces the first heading in the markdown content with a new structure:
+    - Creates a language-appropriate heading (German: "Frage", English: "Question")
+    - Inserts the original first heading content verbatim
+    - Adds a language-appropriate answer heading (German: "Antwort", English: "Answer")
+
+    Args:
+        markdown_content (str): The markdown content to process
+
+    Returns:
+        str: Modified markdown content with new heading structure
+    """
+    # Pattern to match the first heading (any level: #, ##, ###, etc.)
+    first_heading_pattern = r"^(#{1,6})\s+(.+?)(?=\n|$)"
+
+    # Find the first heading
+    match = re.search(first_heading_pattern, markdown_content, re.MULTILINE)
+
+    if not match:
+        # No heading found, return original content
+        return markdown_content
+
+    # Extract the heading content
+    heading_content = match.group(2)
+
+    # Detect language and choose appropriate headings
+    language = detect_language(markdown_content)
+    if language == "en":
+        question_heading = "Question"
+        answer_heading = "Answer"
+    else:  # German (default)
+        question_heading = "Frage"
+        answer_heading = "Antwort"
+
+    # Create the replacement structure
+    replacement = f"# {question_heading}\n\n{heading_content}\n\n# {answer_heading}"
+
+    # Replace the first heading with the new structure
+    modified_content = re.sub(
+        first_heading_pattern,
+        replacement,
+        markdown_content,
+        count=1,  # Only replace the first occurrence
+        flags=re.MULTILINE,
+    )
+
+    return modified_content
+
+
 def preprocess_markdown(markdown_content, language="en-US"):
     """
     Converts footnotes to proper source references that work correctly with Pandoc PDF conversion.
@@ -24,6 +205,8 @@ def preprocess_markdown(markdown_content, language="en-US"):
         markdown_content (str): The markdown content to process
         language (str): Language code for citations (e.g., "de-DE", "en-US")
     """
+    # First, replace the first heading with the new structure
+    markdown_content = replace_first_heading(markdown_content)
 
     # Extract all footnote definitions - handles both single and multi-line footnotes
     footnote_pattern = r"\[(\^[\w-]+)\]:\s*(.+?)(?=\n\[|\n\n|\Z)"
