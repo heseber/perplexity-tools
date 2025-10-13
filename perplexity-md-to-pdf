@@ -43,6 +43,9 @@ perplexity-md-to-pdf() {
         return 1
     fi
     
+    # Expand tilde in path if present
+    md_in=$(eval echo "$md_in")
+    
     # Check if input file exists
     if [[ ! -f "$md_in" ]]; then
         echo "Error: Input file '$md_in' does not exist" >&2
@@ -54,37 +57,40 @@ perplexity-md-to-pdf() {
     # Check if document contains tables
     has_tables=$(cat "$md_in" | grep -c "^|.*|" || echo "0")
     
-    # Build pandoc command
-    pandoc_cmd="pandoc \
-        --from=markdown \
-        --to=pdf \
-        -o \"$pdf_out\" \
-        --pdf-engine=xelatex \
-        --citeproc \
-        -V mainfont=\"DejaVu Serif\" \
-.        -V geometry:a4paper \
-        -V geometry:margin=1.5cm"
+    # Build pandoc command arguments
+    pandoc_args=(
+        --from=markdown
+        --to=pdf
+        -o "$pdf_out"
+        --pdf-engine=xelatex
+        --citeproc
+        -V mainfont="DejaVu Serif"
+        -V geometry:a4paper
+        -V geometry:margin=1.5cm
+    )
     
     if [ "$has_tables" -gt 0 ]; then
         # Use single column with portrait orientation for documents with tables
-        pandoc_cmd="$pandoc_cmd \
-            -V geometry:portrait \
-            -V geometry:columnsep=1cm \
-            --lua-filter=longtable-to-table.lua"
+        pandoc_args+=(
+            -V geometry:portrait
+            --lua-filter=longtable-to-table.lua
+        )
     else
         # Use two columns with landscape orientation for documents without tables
-        pandoc_cmd="$pandoc_cmd \
-            -V geometry:landscape \
-            -V geometry:columnsep=1cm \
-            -V classoption:twocolumn \
-            --lua-filter=longtable-to-table.lua"
+        pandoc_args+=(
+            -V geometry:landscape
+            -V geometry:columnsep=1cm
+            -V classoption:twocolumn
+            --lua-filter=longtable-to-table.lua
+        )
     fi
     
-    pandoc_cmd="$pandoc_cmd \
-        --template eisvogel \
-        --syntax-highlighting=idiomatic"
+    pandoc_args+=(
+        --template eisvogel
+        --syntax-highlighting=idiomatic
+    )
     
     # Execute the command
-    cat "$md_in" | perplexity-preprocess-md.py -l "$language" | \
-        eval "$pandoc_cmd"
+    cat "$md_in" | ./perplexity-preprocess-md.py -l "$language" | \
+        pandoc "${pandoc_args[@]}"
 }
