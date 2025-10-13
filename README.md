@@ -177,7 +177,7 @@ The tools support multiple languages for citation formatting:
 ### PDF Output Settings
 
 The `perplexity-md-to-pdf` function uses these default settings:
-- **Layout**: Two-column landscape
+- **Layout**: Two-column landscape (single-column portrait when tables are present)
 - **Paper**: A4
 - **Margins**: 1.5cm
 - **Column separation**: 1cm
