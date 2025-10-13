@@ -1,5 +1,6 @@
 perplexity-md-to-pdf() {
     local language="en-US"
+    local font="FreeSans"
     local md_in=""
     
     # Parse command line arguments
@@ -9,12 +10,19 @@ perplexity-md-to-pdf() {
                 language="$2"
                 shift 2
                 ;;
+            -f|--font)
+                font="$2"
+                shift 2
+                ;;
             -h|--help)
-                echo "Usage: perplexity-md-to-pdf [-l|--language LANGUAGE] \
+                echo "Usage: perplexity-md-to-pdf [-l|--language LANGUAGE] [-f|--font FONT] \
                     <markdown_file>"
                 echo "  -l, --language LANGUAGE  Language code for citations"
                 echo "                          (default: en-US)"
                 echo "                          Use 'de' for German, 'en' for English"
+                echo "  -f, --font FONT         Font name for PDF output"
+                echo "                          (default: FreeSans)"
+                echo "                          Use quotes for font names with spaces"
                 echo "  -h, --help              Show this help message"
                 return 0
                 ;;
@@ -38,7 +46,7 @@ perplexity-md-to-pdf() {
     # Check if input file is provided
     if [[ -z "$md_in" ]]; then
         echo "Error: No input file specified" >&2
-        echo "Usage: perplexity-md-to-pdf [-l|--language LANGUAGE] \
+        echo "Usage: perplexity-md-to-pdf [-l|--language LANGUAGE] [-f|--font FONT] \
             <markdown_file>" >&2
         return 1
     fi
@@ -64,7 +72,7 @@ perplexity-md-to-pdf() {
         -o "$pdf_out"
         --pdf-engine=xelatex
         --citeproc
-        -V mainfont="DejaVu Serif"
+        -V mainfont="$font"
         -V fontsize=10pt
         -V geometry:a4paper
         -V geometry:margin=2.5cm
