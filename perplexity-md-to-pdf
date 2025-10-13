@@ -76,12 +76,22 @@ perplexity-md-to-pdf() {
     else
         # Try to find the script directory by looking for the files
         script_dir=""
-        for dir in "/Users/henrikseidel/projects/perplexity-tools" "$(dirname "$(which perplexity-md-to-pdf 2>/dev/null)")" "$(dirname "${BASH_SOURCE[0]}")"; do
-            if [[ -n "$dir" && -f "$dir/perplexity-preprocess-md.py" && -f "$dir/longtable-to-table.lua" ]]; then
-                script_dir="$dir"
-                break
+        
+        # First try the hardcoded path
+        if [[ -f "/Users/henrikseidel/projects/perplexity-tools/perplexity-preprocess-md.py" && -f "/Users/henrikseidel/projects/perplexity-tools/longtable-to-table.lua" ]]; then
+            script_dir="/Users/henrikseidel/projects/perplexity-tools"
+        else
+            # Try to find it by looking for the actual script file
+            local script_path
+            script_path=$(find /Users/henrikseidel/projects -name "perplexity-md-to-pdf" -type f 2>/dev/null | head -1)
+            if [[ -n "$script_path" ]]; then
+                local found_dir
+                found_dir=$(dirname "$script_path")
+                if [[ -f "$found_dir/perplexity-preprocess-md.py" && -f "$found_dir/longtable-to-table.lua" ]]; then
+                    script_dir="$found_dir"
+                fi
             fi
-        done
+        fi
         
         if [[ -z "$script_dir" ]]; then
             echo "Error: Cannot find perplexity-tools directory. Please set PERPLEXITY_TOOLS_DIR environment variable." >&2
