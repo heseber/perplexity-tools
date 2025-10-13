@@ -60,7 +60,8 @@ perplexity-md-to-pdf() {
             -V geometry:a4paper \
             -V geometry:margin=1.5cm \
             -V geometry:columnsep=1cm \
-            -V classoption:twocolumn
+            -V classoption:twocolumn \
+            --lua-filter=longtable-to-table.lua \
+            --template eisvogel \
+            --syntax-highlighting=idiomatic
 }
-
-
