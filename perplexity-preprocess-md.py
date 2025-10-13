@@ -137,56 +137,6 @@ def detect_language(markdown_content):
     return "en" if english_count > german_count else "de"
 
 
-def replace_first_heading(markdown_content):
-    """
-    Replaces the first heading in the markdown content with a new structure:
-    - Creates a language-appropriate heading (German: "Frage", English: "Question")
-    - Inserts the original first heading content verbatim
-    - Adds a language-appropriate answer heading (German: "Antwort", English: "Answer")
-
-    Args:
-        markdown_content (str): The markdown content to process
-
-    Returns:
-        str: Modified markdown content with new heading structure
-    """
-    # Pattern to match the first heading (any level: #, ##, ###, etc.)
-    first_heading_pattern = r"^(#{1,6})\s+(.+?)(?=\n|$)"
-
-    # Find the first heading
-    match = re.search(first_heading_pattern, markdown_content, re.MULTILINE)
-
-    if not match:
-        # No heading found, return original content
-        return markdown_content
-
-    # Extract the heading content
-    heading_content = match.group(2)
-
-    # Detect language and choose appropriate headings
-    language = detect_language(markdown_content)
-    if language == "en":
-        question_heading = "Question"
-        answer_heading = "Answer"
-    else:  # German (default)
-        question_heading = "Frage"
-        answer_heading = "Antwort"
-
-    # Create the replacement structure
-    replacement = f"# {question_heading}\n\n{heading_content}\n\n# {answer_heading}"
-
-    # Replace the first heading with the new structure
-    modified_content = re.sub(
-        first_heading_pattern,
-        replacement,
-        markdown_content,
-        count=1,  # Only replace the first occurrence
-        flags=re.MULTILINE,
-    )
-
-    return modified_content
-
-
 def preprocess_markdown(markdown_content, language="en-US"):
     """
     Converts footnotes to proper source references that work correctly with Pandoc PDF conversion.
@@ -205,8 +155,6 @@ def preprocess_markdown(markdown_content, language="en-US"):
         markdown_content (str): The markdown content to process
         language (str): Language code for citations (e.g., "de-DE", "en-US")
     """
-    # First, replace the first heading with the new structure
-    markdown_content = replace_first_heading(markdown_content)
 
     # Extract all footnote definitions - handles both single and multi-line footnotes
     footnote_pattern = r"\[(\^[\w-]+)\]:\s*(.+?)(?=\n\[|\n\n|\Z)"
