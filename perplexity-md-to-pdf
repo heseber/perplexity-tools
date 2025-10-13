@@ -65,20 +65,20 @@ perplexity-md-to-pdf() {
         --pdf-engine=xelatex
         --citeproc
         -V mainfont="DejaVu Serif"
+        -V fontsize=10pt
         -V geometry:a4paper
+        -V geometry:margin=2.5cm
     )
     
     if [ "$has_tables" -gt 0 ]; then
         # Use single column with portrait orientation for documents with tables
         pandoc_args+=(
-           -V geometry:margin=2.5cm
            -V geometry:portrait
             --lua-filter=longtable-to-table.lua
         )
     else
         # Use two columns with landscape orientation for documents without tables
         pandoc_args+=(
-            -V geometry:margin=1.5cm
             -V geometry:landscape
             -V geometry:columnsep=1cm
             -V classoption:twocolumn
