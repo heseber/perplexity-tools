@@ -69,11 +69,31 @@ perplexity-md-to-pdf() {
         -V geometry:margin=1.5cm
     )
     
+    # Get the directory where this script is located
+    # Use PERPLEXITY_TOOLS_DIR if set, otherwise try to detect it
+    if [[ -n "$PERPLEXITY_TOOLS_DIR" ]]; then
+        script_dir="$PERPLEXITY_TOOLS_DIR"
+    else
+        # Try to find the script directory by looking for the files
+        script_dir=""
+        for dir in "/Users/henrikseidel/projects/perplexity-tools" "$(dirname "$(which perplexity-md-to-pdf 2>/dev/null)")" "$(dirname "${BASH_SOURCE[0]}")"; do
+            if [[ -n "$dir" && -f "$dir/perplexity-preprocess-md.py" && -f "$dir/longtable-to-table.lua" ]]; then
+                script_dir="$dir"
+                break
+            fi
+        done
+        
+        if [[ -z "$script_dir" ]]; then
+            echo "Error: Cannot find perplexity-tools directory. Please set PERPLEXITY_TOOLS_DIR environment variable." >&2
+            return 1
+        fi
+    fi
+    
     if [ "$has_tables" -gt 0 ]; then
         # Use single column with portrait orientation for documents with tables
         pandoc_args+=(
             -V geometry:portrait
-            --lua-filter=longtable-to-table.lua
+            --lua-filter="$script_dir/longtable-to-table.lua"
         )
     else
         # Use two columns with landscape orientation for documents without tables
@@ -81,7 +101,7 @@ perplexity-md-to-pdf() {
             -V geometry:landscape
             -V geometry:columnsep=1cm
             -V classoption:twocolumn
-            --lua-filter=longtable-to-table.lua
+            --lua-filter="$script_dir/longtable-to-table.lua"
         )
     fi
     
@@ -91,6 +111,6 @@ perplexity-md-to-pdf() {
     )
     
     # Execute the command
-    cat "$md_in" | ./perplexity-preprocess-md.py -l "$language" | \
+    cat "$md_in" | "$script_dir/perplexity-preprocess-md.py" -l "$language" | \
         pandoc "${pandoc_args[@]}"
 }
