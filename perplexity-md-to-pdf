@@ -10,8 +10,10 @@ perplexity-md-to-pdf() {
                 shift 2
                 ;;
             -h|--help)
-                echo "Usage: perplexity-md-to-pdf [-l|--language LANGUAGE] <markdown_file>"
-                echo "  -l, --language LANGUAGE  Language code for citations (default: en-US)"
+                echo "Usage: perplexity-md-to-pdf [-l|--language LANGUAGE] \
+                    <markdown_file>"
+                echo "  -l, --language LANGUAGE  Language code for citations"
+                echo "                          (default: en-US)"
                 echo "                          Use 'de' for German, 'en' for English"
                 echo "  -h, --help              Show this help message"
                 return 0
@@ -36,7 +38,8 @@ perplexity-md-to-pdf() {
     # Check if input file is provided
     if [[ -z "$md_in" ]]; then
         echo "Error: No input file specified" >&2
-        echo "Usage: perplexity-md-to-pdf [-l|--language LANGUAGE] <markdown_file>" >&2
+        echo "Usage: perplexity-md-to-pdf [-l|--language LANGUAGE] \
+            <markdown_file>" >&2
         return 1
     fi
     
@@ -47,21 +50,40 @@ perplexity-md-to-pdf() {
     fi
     
     pdf_out=$(dirname "$md_in")/$(basename "$md_in" .md).pdf
-    cat "$md_in" \
-        | perplexity-preprocess-md.py -l "$language" \
-        | pandoc \
-            --from=markdown \
-            --to=pdf \
-            -o "$pdf_out" \
-            --pdf-engine=xelatex \
-            --citeproc \
-            -V mainfont="DejaVu Serif" \
-            -V geometry:landscape \
-            -V geometry:a4paper \
-            -V geometry:margin=1.5cm \
+    
+    # Check if document contains tables
+    has_tables=$(cat "$md_in" | grep -c "^|.*|" || echo "0")
+    
+    # Build pandoc command
+    pandoc_cmd="pandoc \
+        --from=markdown \
+        --to=pdf \
+        -o \"$pdf_out\" \
+        --pdf-engine=xelatex \
+        --citeproc \
+        -V mainfont=\"DejaVu Serif\" \
+        -V geometry:landscape \
+        -V geometry:a4paper \
+        -V geometry:margin=1.5cm"
+    
+    if [ "$has_tables" -gt 0 ]; then
+        # Use single column for documents with tables to avoid longtable issues
+        pandoc_cmd="$pandoc_cmd \
+            -V geometry:columnsep=1cm \
+            --lua-filter=longtable-to-table.lua"
+    else
+        # Use two columns for documents without tables
+        pandoc_cmd="$pandoc_cmd \
             -V geometry:columnsep=1cm \
             -V classoption:twocolumn \
-            --lua-filter=longtable-to-table.lua \
-            --template eisvogel \
-            --syntax-highlighting=idiomatic
+            --lua-filter=longtable-to-table.lua"
+    fi
+    
+    pandoc_cmd="$pandoc_cmd \
+        --template eisvogel \
+        --syntax-highlighting=idiomatic"
+    
+    # Execute the command
+    cat "$md_in" | perplexity-preprocess-md.py -l "$language" | \
+        eval "$pandoc_cmd"
 }

@@ -6,7 +6,8 @@ echo ""
 # Extract Pandoc Data Directory from pandoc --version
 echo "🔍 Detecting Pandoc installation..."
 DATA_DIR=$(pandoc --version | grep "User data directory:" | sed 's/.*: //' || \
-           pandoc --version | grep "Default user data directory:" | sed 's/.*: //')
+           pandoc --version | grep "Default user data directory:" | \
+               sed 's/.*: //')
 
 # If not found, fallback to standard directories
 if [ -z "$DATA_DIR" ]; then
@@ -166,7 +167,8 @@ if check_function_loading "$RC_FILE" "$CURRENT_SHELL"; then
     echo "✅ Shell function directory is already configured in $RC_FILE"
 else
     echo ""
-    echo "📝 To make the shell function available, add the following to your $RC_FILE:"
+    echo "📝 To make the shell function available, add the following \
+        to your $RC_FILE:"
     echo ""
     # ANSI color codes
     RED='\033[0;31m'

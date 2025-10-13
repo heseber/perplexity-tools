@@ -6,7 +6,8 @@ function Table(tbl)
       local latex_row = ""
       for i, cell in ipairs(cells) do
         for _, content in ipairs(cell) do
-          latex_row = latex_row .. pandoc.write(pandoc.Pandoc({content}), "latex")
+          latex_row = latex_row .. \
+              pandoc.write(pandoc.Pandoc({content}), "latex")
         end
         if i < #cells then
           latex_row = latex_row .. " & "
@@ -24,15 +25,18 @@ function Table(tbl)
   
     local col_alignment = string.rep("l", num_cols)
   
-    blocks:insert(pandoc.RawBlock("latex", "\\begin{table}[t]"))
+    -- Use table* for two-column documents to span both columns
+    blocks:insert(pandoc.RawBlock("latex", "\\begin{table*}[t]"))
     blocks:insert(pandoc.RawBlock("latex", "\\centering"))
   
     if tbl.caption then
       local caption_text = pandoc.utils.stringify(tbl.caption)
-      blocks:insert(pandoc.RawBlock("latex", "\\caption{" .. caption_text .. "}"))
+      blocks:insert(pandoc.RawBlock("latex", \
+          "\\caption{" .. caption_text .. "}"))
     end
   
-    blocks:insert(pandoc.RawBlock("latex", "\\begin{tabular}{" .. col_alignment .. "}"))
+    blocks:insert(pandoc.RawBlock("latex", \
+        "\\begin{tabular}{" .. col_alignment .. "}"))
     blocks:insert(pandoc.RawBlock("latex", "\\hline"))
   
     if simpleTable.header and #simpleTable.header > 0 then
@@ -48,7 +52,7 @@ function Table(tbl)
   
     blocks:insert(pandoc.RawBlock("latex", "\\hline"))
     blocks:insert(pandoc.RawBlock("latex", "\\end{tabular}"))
-    blocks:insert(pandoc.RawBlock("latex", "\\end{table}"))
+    blocks:insert(pandoc.RawBlock("latex", "\\end{table*}"))
   
     return blocks
   end
