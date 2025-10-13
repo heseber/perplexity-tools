@@ -61,14 +61,12 @@ echo "📍 Target directory: $INSTALL_DIR"
 # Create directory if it doesn't exist
 mkdir -p "$INSTALL_DIR"
 
-# Copy program
-for file in perplexity-md-to-md perplexity-md-to-pdf; do
-    echo "  📄 Installing $file..."
-    cp $file "$INSTALL_DIR/"
-    chmod +x "$INSTALL_DIR/$file"
-done
+# Copy Python script to binary directory
+echo "  📄 Installing perplexity-preprocess-md.py..."
+cp perplexity-preprocess-md.py "$INSTALL_DIR/"
+chmod +x "$INSTALL_DIR/perplexity-preprocess-md.py"
 
-echo "✅ Command-line tools installed successfully!"
+echo "✅ Python script installed successfully!"
 
 # Check if directory is in PATH
 if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
@@ -131,9 +129,11 @@ if [ ! -d "$SHELLFN_DIR" ]; then
     mkdir -p "$SHELLFN_DIR"
 fi
 
-# Copy the perplexity-preprocess-md.py script to the shell function directory
-echo "  📄 Installing perplexity-preprocess-md.py..."
-cp perplexity-preprocess-md.py "$SHELLFN_DIR/"
+# Copy shell functions to the shell function directory
+for file in perplexity-md-to-md perplexity-md-to-pdf; do
+    echo "  📄 Installing $file..."
+    cp $file "$SHELLFN_DIR/"
+done
 
 echo "✅ Shell function installed successfully!"
 echo ""
@@ -205,11 +205,11 @@ echo "🎉 Installation completed successfully!"
 echo ""
 echo "📋 Summary:"
 echo "  • Pandoc filter installed in: $FILTER_DIR"
-echo "  • Command-line tools installed in: $INSTALL_DIR"
-echo "  • Shell function installed in: $SHELLFN_DIR"
+echo "  • Python script installed in: $INSTALL_DIR"
+echo "  • Shell functions installed in: $SHELLFN_DIR"
 echo ""
 echo "🚀 You can now use:"
-echo "  • perplexity-md-to-md"
-echo "  • perplexity-md-to-pdf"
-echo "  • perplexity-preprocess-md.py (after sourcing shell functions)"
+echo "  • perplexity-md-to-md (after sourcing shell functions)"
+echo "  • perplexity-md-to-pdf (after sourcing shell functions)"
+echo "  • perplexity-preprocess-md.py"
 
