@@ -55,7 +55,7 @@ perplexity-md-to-pdf() {
     pdf_out=$(dirname "$md_in")/$(basename "$md_in" .md).pdf
     
     # Check if document contains tables
-    has_tables=$(cat "$md_in" | grep -c "^|.*|" || echo "0")
+    has_tables=$(cat "$md_in" | grep -c "^|.*|")
     
     # Build pandoc command arguments
     pandoc_args=(
