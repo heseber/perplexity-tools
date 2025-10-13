@@ -137,7 +137,7 @@ def detect_language(markdown_content):
     return "en" if english_count > german_count else "de"
 
 
-def preprocess_markdown(markdown_content, language="en-US"):
+def preprocess_markdown(markdown_content, language="en-US", no_fallback_fonts=False):
     """
     Converts footnotes to proper source references that work correctly with Pandoc PDF conversion.
     Consolidates duplicate references and adds bibliography entries to YAML front matter.
@@ -154,6 +154,7 @@ def preprocess_markdown(markdown_content, language="en-US"):
     Args:
         markdown_content (str): The markdown content to process
         language (str): Language code for citations (e.g., "de-DE", "en-US")
+        no_fallback_fonts (bool): If True, skip adding font fallback configuration to YAML
     """
 
     # Extract all footnote definitions - handles both single and multi-line footnotes
@@ -289,6 +290,26 @@ def preprocess_markdown(markdown_content, language="en-US"):
         if "link-citations:" not in yaml_content:
             yaml_content += "\nlink-citations: true\n"
 
+        # Add PDF engine and font fallback configuration if not already present
+        if "pdf-engine:" not in yaml_content:
+            yaml_content += "\npdf-engine: lualatex\n"
+        if not no_fallback_fonts:
+            if "mainfontfallback:" not in yaml_content:
+                yaml_content += "\nmainfontfallback:\n"
+                yaml_content += '  - "Noto Emoji:"\n'
+                yaml_content += '  - "DejaVu Serif:"\n'
+                yaml_content += '  - "FreeSerif:"\n'
+            if "sansfontfallback:" not in yaml_content:
+                yaml_content += "\nsansfontfallback:\n"
+                yaml_content += '  - "Noto Emoji:"\n'
+                yaml_content += '  - "DejaVu Serif:"\n'
+                yaml_content += '  - "FreeSerif:"\n'
+            if "monofontfallback:" not in yaml_content:
+                yaml_content += "\nmonofontfallback:\n"
+                yaml_content += '  - "Noto Emoji:"\n'
+                yaml_content += '  - "DejaVu Serif:"\n'
+                yaml_content += '  - "FreeSerif:"\n'
+
         # Reconstruct document with updated YAML
         content_updated = f"---\n{yaml_content}---\n{document_content}"
     elif unique_references and not yaml_start:
@@ -302,6 +323,21 @@ def preprocess_markdown(markdown_content, language="en-US"):
         yaml_content += "\ncsl: https://raw.githubusercontent.com/citation-style-language/styles/master/nature.csl\n"
         yaml_content += f"\nlang: {language}\n"
         yaml_content += "\nlink-citations: true\n"
+        # Add PDF engine and font fallback configuration
+        yaml_content += "\npdf-engine: lualatex\n"
+        if not no_fallback_fonts:
+            yaml_content += "\nmainfontfallback:\n"
+            yaml_content += '  - "Noto Emoji:"\n'
+            yaml_content += '  - "DejaVu Serif:"\n'
+            yaml_content += '  - "FreeSerif:"\n'
+            yaml_content += "\nsansfontfallback:\n"
+            yaml_content += '  - "Noto Emoji:"\n'
+            yaml_content += '  - "DejaVu Serif:"\n'
+            yaml_content += '  - "FreeSerif:"\n'
+            yaml_content += "\nmonofontfallback:\n"
+            yaml_content += '  - "Noto Emoji:"\n'
+            yaml_content += '  - "DejaVu Serif:"\n'
+            yaml_content += '  - "FreeSerif:"\n'
         yaml_content += "---\n\n"
         content_updated = yaml_content + document_content
 
@@ -321,6 +357,11 @@ def main():
         default="en-US",
         help="Language code for citations (default: en-US). Use 'de' for German, 'en' for English, or full codes like 'de-DE', 'en-US'",
     )
+    parser.add_argument(
+        "--no-fallback-fonts",
+        action="store_true",
+        help="Skip adding font fallback configuration to YAML front matter",
+    )
 
     args = parser.parse_args()
 
@@ -333,7 +374,9 @@ def main():
         markdown_content = sys.stdin.read()
 
         # Process the content
-        processed_content = preprocess_markdown(markdown_content, language)
+        processed_content = preprocess_markdown(
+            markdown_content, language, args.no_fallback_fonts
+        )
 
         # Output to stdout
         sys.stdout.write(processed_content)

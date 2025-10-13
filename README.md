@@ -38,6 +38,9 @@ cat input.md | python3 perplexity-preprocess-md.py > output.md
 # With language specification
 cat input.md | python3 perplexity-preprocess-md.py -l de-DE > output.md
 
+# Skip font fallback configuration
+cat input.md | python3 perplexity-preprocess-md.py --no-fallback-fonts > output.md
+
 # Available language options: en-US, de-DE, or shortcuts: en, de
 ```
 
@@ -47,9 +50,6 @@ A bash function that performs basic markdown preprocessing, specifically fixing 
 
 **Usage:**
 ```bash
-# Source the function first
-source perplexity-md-to-md
-
 # Convert a markdown file
 perplexity-md-to-md input.md
 # Creates input-fixed.md in the same directory
@@ -61,22 +61,28 @@ A bash function that converts markdown files directly to PDF using Pandoc with o
 
 **Features:**
 - Automatic preprocessing using `perplexity-preprocess-md.py`
-- Two-column landscape layout optimized for academic papers
+- Two-column landscape layout for saving paper, unless the markdown contains tables (tables enforce one-column output)
 - Proper citation processing with `--citeproc`
-- Uses XeLaTeX engine for better Unicode support
-- DejaVu Serif font for professional appearance
+- Uses LuaLaTeX engine for better Unicode support with fallback fonts
+- Configurable font selection (default: FreeSans)
 - Configurable language support
 
 **Usage:**
 ```bash
-# Source the function first
-source perplexity-md-to-pdf
-
 # Convert to PDF with default settings (English)
 perplexity-md-to-pdf document.md
 
 # Convert with German language support
 perplexity-md-to-pdf -l de document.md
+
+# Convert with custom font
+perplexity-md-to-pdf -f "Times New Roman" document.md
+
+# Skip font fallback configuration
+perplexity-md-to-pdf --no-fallback-fonts document.md
+
+# Combine multiple options
+perplexity-md-to-pdf -l de -f "DejaVu Serif" --no-fallback-fonts document.md
 
 # Show help
 perplexity-md-to-pdf --help
@@ -88,8 +94,9 @@ perplexity-md-to-pdf --help
 
 - Python 3.6+
 - Pandoc
-- XeLaTeX (usually comes with TeXLive or MiKTeX)
+- LuaLaTeX (usually comes with TeXLive or MiKTeX)
 - Bash shell (for the shell functions)
+- **Font requirements** (see Font Configuration section below)
 
 ### Setup
 
@@ -99,17 +106,81 @@ git clone <repository-url>
 cd perplexity-tools
 ```
 
-2. Make the Python script executable:
+2. Run the automated installation script:
 ```bash
-chmod +x perplexity-preprocess-md.py
+./install.sh
 ```
 
-3. Add the shell functions to your bash profile:
+The installation script will:
+- Install the Pandoc Lua filter (`longtable-to-table.lua`) to your Pandoc data directory
+- Install the Python script (`perplexity-preprocess-md.py`) to your local binary directory
+- Install the shell functions (`perplexity-md-to-md` and `perplexity-md-to-pdf`) to your shell function directory
+- Detect your shell (bash/zsh) and provide instructions for loading the functions
+
+3. Follow the instructions provided by the installer to add the shell functions to your shell configuration file (`~/.bashrc` or `~/.zshrc`).
+
+4. Restart your shell or source your configuration file:
 ```bash
-# Add to ~/.bashrc or ~/.zshrc
-source /path/to/perplexity-tools/perplexity-md-to-md
-source /path/to/perplexity-tools/perplexity-md-to-pdf
+# For bash
+source ~/.bashrc
+
+# For zsh
+source ~/.zshrc
 ```
+
+## Font Configuration
+
+### Required Fonts
+
+By default, the tools add font fallback configuration to ensure proper rendering of emojis and special characters. The following fonts need to be installed on your system for PDF conversion to work without errors:
+
+**Required fonts:**
+- **FreeSans** - Default main font (required unless using `-f` option with a different font)
+- **Noto Emoji** - For emoji and Unicode symbol support
+- **DejaVu Serif** - Primary fallback font for serif text
+- **FreeSerif** - Secondary fallback font
+
+### Installing Fonts
+
+#### macOS
+```bash
+# Install via Homebrew
+brew install font-noto-emoji font-dejavu font-freefont
+
+# Or download manually from:
+# - FreeSans: https://www.gnu.org/software/freefont/
+# - Noto Emoji: https://fonts.google.com/noto/specimen/Noto+Emoji
+# - DejaVu: https://dejavu-fonts.github.io/
+# - FreeSerif: https://www.gnu.org/software/freefont/
+```
+
+#### Linux (Ubuntu/Debian)
+```bash
+# Install via package manager
+sudo apt-get install fonts-noto-emoji fonts-dejavu fonts-freefont-ttf
+```
+
+#### Windows
+Download and install the fonts manually:
+- [GNU FreeFont](https://www.gnu.org/software/freefont/) (includes FreeSans)
+- [Noto Emoji](https://fonts.google.com/noto/specimen/Noto+Emoji)
+- [DejaVu Fonts](https://dejavu-fonts.github.io/)
+
+### Alternative: Disable Font Fallbacks
+
+If you prefer not to install the additional fonts or want to use your own font configuration, you can disable the font fallback feature:
+
+```bash
+# Skip font fallback configuration
+perplexity-md-to-pdf --no-fallback-fonts document.md
+
+# Or when preprocessing manually
+cat input.md | python3 perplexity-preprocess-md.py --no-fallback-fonts > output.md
+```
+
+**Note:** When using `--no-fallback-fonts`, you may encounter warnings about missing special symbols (emojis, Unicode characters) that cannot be rendered with the standard fonts. These symbols will not appear in the final PDF output.
+
+**Important:** Even with `--no-fallback-fonts`, the default font **FreeSans** must still be installed on your system, unless you specify a different font using the `-f|--font` option.
 
 ## Workflow Examples
 
@@ -127,7 +198,7 @@ perplexity-md-to-pdf my-document.md
 cat input.md | python3 perplexity-preprocess-md.py -l de > processed.md
 
 # Manual Pandoc conversion with custom options
-pandoc processed.md -o output.pdf --pdf-engine=xelatex --citeproc
+pandoc processed.md -o output.pdf --pdf-engine=lualatex --citeproc
 ```
 
 ### Batch Processing
@@ -174,24 +245,49 @@ The tools support multiple languages for citation formatting:
 - `en` - Short form for English
 - `de` - Short form for German
 
+### Font Configuration
+
+The `perplexity-md-to-pdf` function allows you to specify custom fonts:
+
+```bash
+# Use different fonts
+perplexity-md-to-pdf -f "Times New Roman" document.md
+perplexity-md-to-pdf -f "DejaVu Serif" document.md
+perplexity-md-to-pdf -f "Liberation Sans" document.md
+
+# Font names with spaces need quotes
+perplexity-md-to-pdf -f "Computer Modern" document.md
+```
+
+**Note:** The specified font must be installed on your system. If the font is not available, LuaLaTeX will fall back to the default font (FreeSans) or show warnings.
+
+**Default Font Requirement:** The default font **FreeSans** must be installed on your system unless you specify a different font with the `-f|--font` option. This requirement applies even when using `--no-fallback-fonts`.
+
 ### PDF Output Settings
 
 The `perplexity-md-to-pdf` function uses these default settings:
 - **Layout**: Two-column landscape (single-column portrait when tables are present)
 - **Paper**: A4
-- **Margins**: 1.5cm
+- **Margins**: 2.5cm
 - **Column separation**: 1cm
-- **Font**: DejaVu Serif
-- **Engine**: XeLaTeX
+- **Font**: FreeSans (configurable with `-f|--font` option)
+- **Engine**: LuaLaTeX
+- **Font fallbacks**: Noto Emoji, DejaVu Serif, FreeSerif (can be disabled with `--no-fallback-fonts`)
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **XeLaTeX not found**: Install TeXLive or MiKTeX
+1. **LuaLaTeX not found**: Install TeXLive or MiKTeX
 2. **Pandoc not found**: Install Pandoc from [pandoc.org](https://pandoc.org/installing.html)
-3. **Font issues**: Ensure DejaVu Serif is installed on your system
+3. **Font issues**: 
+   - Ensure the required fallback fonts are installed (see Font Configuration section)
+   - **FreeSans must be installed** unless using `-f|--font` with a different font
+   - Or use `--no-fallback-fonts` to skip font fallback configuration
+   - Check that your system has the fonts specified in the YAML front matter
+   - If using custom fonts with `-f|--font`, ensure the specified font is installed
 4. **Permission denied**: Make sure the Python script is executable
+5. **PDF conversion fails with font errors**: Install the required fonts or use `--no-fallback-fonts`
 
 ### Debug Mode
 
@@ -202,7 +298,7 @@ For troubleshooting, you can run the preprocessing step separately:
 cat input.md | python3 perplexity-preprocess-md.py -l en-US
 
 # Then manually run Pandoc
-pandoc processed.md -o output.pdf --pdf-engine=xelatex --citeproc
+pandoc processed.md -o output.pdf --pdf-engine=lualatex --citeproc
 ```
 
 ## Contributing

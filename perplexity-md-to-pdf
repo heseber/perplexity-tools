@@ -2,6 +2,7 @@ perplexity-md-to-pdf() {
     local language="en-US"
     local font="FreeSans"
     local md_in=""
+    local no_fallback_fonts=false
     
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
@@ -14,8 +15,12 @@ perplexity-md-to-pdf() {
                 font="$2"
                 shift 2
                 ;;
+            --no-fallback-fonts)
+                no_fallback_fonts=true
+                shift
+                ;;
             -h|--help)
-                echo "Usage: perplexity-md-to-pdf [-l|--language LANGUAGE] [-f|--font FONT] \
+                echo "Usage: perplexity-md-to-pdf [-l|--language LANGUAGE] [-f|--font FONT] [--no-fallback-fonts] \
                     <markdown_file>"
                 echo "  -l, --language LANGUAGE  Language code for citations"
                 echo "                          (default: en-US)"
@@ -23,6 +28,7 @@ perplexity-md-to-pdf() {
                 echo "  -f, --font FONT         Font name for PDF output"
                 echo "                          (default: FreeSans)"
                 echo "                          Use quotes for font names with spaces"
+                echo "  --no-fallback-fonts     Skip adding font fallback configuration to YAML"
                 echo "  -h, --help              Show this help message"
                 return 0
                 ;;
@@ -46,7 +52,7 @@ perplexity-md-to-pdf() {
     # Check if input file is provided
     if [[ -z "$md_in" ]]; then
         echo "Error: No input file specified" >&2
-        echo "Usage: perplexity-md-to-pdf [-l|--language LANGUAGE] [-f|--font FONT] \
+        echo "Usage: perplexity-md-to-pdf [-l|--language LANGUAGE] [-f|--font FONT] [--no-fallback-fonts] \
             <markdown_file>" >&2
         return 1
     fi
@@ -70,7 +76,7 @@ perplexity-md-to-pdf() {
         --from=markdown
         --to=pdf
         -o "$pdf_out"
-        --pdf-engine=xelatex
+        --pdf-engine=lualatex
         --citeproc
         -V mainfont="$font"
         -V fontsize=10pt
@@ -100,6 +106,11 @@ perplexity-md-to-pdf() {
     )
     
     # Execute the command
-    cat "$md_in" | perplexity-preprocess-md.py -l "$language" | \
+    preprocess_args=(-l "$language")
+    if [ "$no_fallback_fonts" = true ]; then
+        preprocess_args+=(--no-fallback-fonts)
+    fi
+    
+    cat "$md_in" | perplexity-preprocess-md.py "${preprocess_args[@]}" | \
         pandoc "${pandoc_args[@]}"
 }
