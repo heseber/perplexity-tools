@@ -88,7 +88,6 @@ perplexity-md-to-pdf() {
         # Use single column with portrait orientation for documents with tables
         pandoc_args+=(
            -V geometry:portrait
-            --lua-filter=longtable-to-table.lua
         )
     else
         # Use two columns with landscape orientation for documents without tables
@@ -96,7 +95,6 @@ perplexity-md-to-pdf() {
             -V geometry:landscape
             -V geometry:columnsep=1cm
             -V classoption:twocolumn
-            --lua-filter=longtable-to-table.lua
         )
     fi
     

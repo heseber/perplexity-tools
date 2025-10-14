@@ -112,7 +112,6 @@ cd perplexity-tools
 ```
 
 The installation script will:
-- Install the Pandoc Lua filter (`longtable-to-table.lua`) to your Pandoc data directory
 - Install the Python script (`perplexity-preprocess-md.py`) to your local binary directory
 - Install the shell functions (`perplexity-md-to-md` and `perplexity-md-to-pdf`) to your shell function directory
 - Detect your shell (bash/zsh) and provide instructions for loading the functions

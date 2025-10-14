@@ -22,17 +22,6 @@ if [ -z "$DATA_DIR" ]; then
     fi
 fi
 
-# Create filters directory
-FILTER_DIR="$DATA_DIR/filters"
-echo "📁 Creating Pandoc filters directory: $FILTER_DIR"
-mkdir -p "$FILTER_DIR"
-
-# Install filter
-echo "📄 Installing longtable-to-table.lua filter..."
-cp longtable-to-table.lua "$FILTER_DIR/"
-
-echo "✅ Pandoc filter installed successfully!"
-echo ""
 
 # Function to determine the preferred installation directory
 get_install_dir() {
@@ -204,7 +193,6 @@ echo ""
 echo "🎉 Installation completed successfully!"
 echo ""
 echo "📋 Summary:"
-echo "  • Pandoc filter installed in: $FILTER_DIR"
 echo "  • Python script installed in: $INSTALL_DIR"
 echo "  • Shell functions installed in: $SHELLFN_DIR"
 echo ""
