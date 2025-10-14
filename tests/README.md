@@ -66,7 +66,7 @@ python3 -m unittest test_md_to_pdf.py -v
 ### perplexity-preprocess-md.py Tests
 - ✓ Basic footnote to citation conversion
 - ✓ Duplicate footnote consolidation
-- ✓ Math expression conversion (\$ ... \$ → $ ... $)
+- ✓ Math expression conversion (\\$ ... \\$ → \$ ... \$)
 - ✓ Centered div conversion to LaTeX
 - ✓ Consecutive citations consolidation
 - ✓ YAML front matter handling
@@ -142,8 +142,7 @@ To add new tests:
    - Ensure lualatex is in your PATH
 
 3. **eisvogel template not found**
-   - Install the template: `pandoc --print-default-template eisvogel > eisvogel.latex`
-   - Or install via package manager if available
+   - Install the template, see the main README.md for instructions
 
 4. **Permission errors**
    - Ensure test files are readable
