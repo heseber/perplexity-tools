@@ -126,19 +126,6 @@ The `perplexity-md-to-pdf` tool requires the **Eisvogel** Pandoc LaTeX template 
    mv eisvogel.latex ~/.pandoc/templates/
    ```
 
-3. **Verify installation:**
-   ```bash
-   # Check if the template file exists in common locations
-   if [ -f "eisvogel.latex" ] || \
-      [ -f "$HOME/.pandoc/templates/eisvogel.latex" ] || \
-      [ -f "$HOME/.local/share/pandoc/templates/eisvogel.latex" ] || \
-      [ -f "/usr/share/pandoc/data/templates/eisvogel.latex" ]; then
-       echo "✓ eisvogel template is available"
-   else
-       echo "✗ eisvogel template is not available"
-   fi
-   ```
-
 **Alternative installation methods:**
 - **Package manager** (if available): Some Linux distributions provide the eisvogel template as a package
 - **Manual download**: Visit [https://github.com/Wandmalfarbe/pandoc-latex-template](https://github.com/Wandmalfarbe/pandoc-latex-template) and download the latest `eisvogel.latex` file
