@@ -161,8 +161,38 @@ def preprocess_markdown(markdown_content, language="en-US", no_fallback_fonts=Fa
     footnote_pattern = r"\[(\^[\w-]+)\]:\s*(.+?)(?=\n\[|\n\n|\Z)"
     footnotes = re.findall(footnote_pattern, markdown_content, re.DOTALL)
 
+    # Always process math expressions and other transformations, even if no footnotes
+    content_updated = markdown_content
+
+    # Fix math expressions - convert \$ ... \$ to $ ... $
+    # Equivalent to: sed -E 's/\\\$  *(([^\$]*|(\\[^$][^\$]*))*)  *\\\$/$\1$/g'
+    math_pattern = r"\\\$  *(([^\$]*|(\\[^$][^\$]*))*)  *\\\$"
+    content_updated = re.sub(math_pattern, r"$\1$", content_updated)
+
+    # Fix centered divs - convert <div style="text-align: center">content</div> and <div align="center">content</div> to LaTeX centering
+    centered_div_pattern = (
+        r'<div (?:style="text-align: center"|align="center")>(.*?)</div>'
+    )
+    content_updated = re.sub(
+        centered_div_pattern, r"\\begin{center}\n\1\n\\end{center}", content_updated
+    )
+
+    # Add horizontal line after all centered characters that don't already have one
+    # Pattern: \end{center} followed by whitespace but not followed by ---
+    content_updated = re.sub(
+        r"(\\end\{center\})\s*(?!\n\s*---)", r"\1\n\n---", content_updated
+    )
+
+    # Clean up extra whitespace that might be left behind
+    # Compress multiple consecutive empty lines to single empty lines
+    content_updated = re.sub(r"\n\n\n+", "\n\n", content_updated)
+    # Remove leading/trailing whitespace from each line and compress multiple spaces
+    content_updated = re.sub(r"[ \t]+", " ", content_updated)
+    # Remove empty lines at the beginning and end
+    content_updated = content_updated.strip()
+
     if not footnotes:
-        return markdown_content
+        return content_updated
 
     # Create mapping of unique content to new reference
     unique_references = OrderedDict()
@@ -191,7 +221,7 @@ def preprocess_markdown(markdown_content, language="en-US", no_fallback_fonts=Fa
     # Pattern to match footnote definitions: [^ref]: content
     footnote_removal_pattern = r"\[(\^[\w-]+)\]:\s*.*?(?=\n\[|\n\n|\Z)"
     content_updated = re.sub(
-        footnote_removal_pattern, "", markdown_content, flags=re.DOTALL
+        footnote_removal_pattern, "", content_updated, flags=re.DOTALL
     )
 
     # Also remove any remaining standalone reference lines (lines that start with [^...]:)
@@ -222,33 +252,6 @@ def preprocess_markdown(markdown_content, language="en-US", no_fallback_fonts=Fa
     content_updated = re.sub(
         consecutive_citations_pattern, consolidate_citations, content_updated
     )
-
-    # Fix math expressions - convert \$ ... \$ to $ ... $
-    # Equivalent to: sed -E 's/\\\$  *(([^\$]*|(\\[^$][^\$]*))*)  *\\\$/$\1$/g'
-    math_pattern = r"\\\$  *(([^\$]*|(\\[^$][^\$]*))*)  *\\\$"
-    content_updated = re.sub(math_pattern, r"$\1$", content_updated)
-
-    # Fix centered divs - convert <div style="text-align: center">content</div> and <div align="center">content</div> to LaTeX centering
-    centered_div_pattern = (
-        r'<div (?:style="text-align: center"|align="center")>(.*?)</div>'
-    )
-    content_updated = re.sub(
-        centered_div_pattern, r"\\begin{center}\n\1\n\\end{center}", content_updated
-    )
-
-    # Add horizontal line after all centered characters that don't already have one
-    # Pattern: \end{center} followed by whitespace but not followed by ---
-    content_updated = re.sub(
-        r"(\\end\{center\})\s*(?!\n\s*---)", r"\1\n\n---", content_updated
-    )
-
-    # Clean up extra whitespace that might be left behind
-    # Compress multiple consecutive empty lines to single empty lines
-    content_updated = re.sub(r"\n\n\n+", "\n\n", content_updated)
-    # Remove leading/trailing whitespace from each line and compress multiple spaces
-    content_updated = re.sub(r"[ \t]+", " ", content_updated)
-    # Remove empty lines at the beginning and end
-    content_updated = content_updated.strip()
 
     # Handle YAML front matter
     yaml_start = content_updated.startswith("---\n")

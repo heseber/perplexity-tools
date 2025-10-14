@@ -65,6 +65,8 @@ A bash function that converts markdown files directly to PDF using Pandoc with o
 - Option to force single-column layout even when no tables are present
 - Proper citation processing with `--citeproc`
 - Uses LuaLaTeX engine for better Unicode support with fallback fonts
+- Professional document formatting using the Eisvogel template
+- Syntax highlighting for code blocks
 - Configurable font selection (default: FreeSans)
 - Configurable language support
 
@@ -99,8 +101,53 @@ perplexity-md-to-pdf --help
 - Python 3.6+
 - Pandoc
 - LuaLaTeX (usually comes with TeXLive or MiKTeX)
+- **Eisvogel template** (see Eisvogel Template Installation below)
 - Bash shell (for the shell functions)
 - **Font requirements** (see Font Configuration section below)
+
+### Eisvogel Template Installation
+
+The `perplexity-md-to-pdf` tool requires the **Eisvogel** Pandoc LaTeX template for PDF generation. This template provides professional document formatting with support for syntax highlighting, tables, and other advanced features.
+
+**Installation:**
+
+1. **Download the template:**
+   ```bash
+   # Download the latest eisvogel.latex template
+   curl -L https://raw.githubusercontent.com/Wandmalfarbe/pandoc-latex-template/master/eisvogel.latex -o eisvogel.latex
+   ```
+
+2. **Install to Pandoc templates directory:**
+   ```bash
+   # Create pandoc templates directory if it doesn't exist
+   mkdir -p ~/.pandoc/templates
+   
+   # Move the template to the pandoc templates directory
+   mv eisvogel.latex ~/.pandoc/templates/
+   ```
+
+3. **Verify installation:**
+   ```bash
+   # Check if the template file exists in common locations
+   if [ -f "eisvogel.latex" ] || \
+      [ -f "$HOME/.pandoc/templates/eisvogel.latex" ] || \
+      [ -f "$HOME/.local/share/pandoc/templates/eisvogel.latex" ] || \
+      [ -f "/usr/share/pandoc/data/templates/eisvogel.latex" ]; then
+       echo "✓ eisvogel template is available"
+   else
+       echo "✗ eisvogel template is not available"
+   fi
+   ```
+
+**Alternative installation methods:**
+- **Package manager** (if available): Some Linux distributions provide the eisvogel template as a package
+- **Manual download**: Visit [https://github.com/Wandmalfarbe/pandoc-latex-template](https://github.com/Wandmalfarbe/pandoc-latex-template) and download the latest `eisvogel.latex` file
+
+**Note:** The template must be accessible to Pandoc. Common locations where Pandoc looks for templates:
+- `~/.pandoc/templates/eisvogel.latex`
+- `~/.local/share/pandoc/templates/eisvogel.latex`
+- `/usr/share/pandoc/data/templates/eisvogel.latex`
+- Current directory (`./eisvogel.latex`)
 
 ### Setup
 
@@ -283,14 +330,15 @@ The `perplexity-md-to-pdf` function uses these default settings:
 
 1. **LuaLaTeX not found**: Install TeXLive or MiKTeX
 2. **Pandoc not found**: Install Pandoc from [pandoc.org](https://pandoc.org/installing.html)
-3. **Font issues**: 
+3. **Eisvogel template not found**: Install the eisvogel template (see Eisvogel Template Installation section above)
+4. **Font issues**: 
    - Ensure the required fallback fonts are installed (see Font Configuration section)
    - **FreeSans must be installed** unless using `-f|--font` with a different font
    - Or use `--no-fallback-fonts` to skip font fallback configuration
    - Check that your system has the fonts specified in the YAML front matter
    - If using custom fonts with `-f|--font`, ensure the specified font is installed
-4. **Permission denied**: Make sure the Python script is executable
-5. **PDF conversion fails with font errors**: Install the required fonts or use `--no-fallback-fonts`
+5. **Permission denied**: Make sure the Python script is executable
+6. **PDF conversion fails with font errors**: Install the required fonts or use `--no-fallback-fonts`
 
 ### Debug Mode
 
@@ -304,9 +352,46 @@ cat input.md | python3 perplexity-preprocess-md.py -l en-US
 pandoc processed.md -o output.pdf --pdf-engine=lualatex --citeproc
 ```
 
+## Testing
+
+The project includes a comprehensive test suite to ensure all tools work correctly. To run the tests:
+
+```bash
+# Run all tests with dependency checking
+make test
+
+# Or run tests directly
+cd tests
+python3 run_tests.py
+
+# Run tests quickly (skip dependency checks)
+make test-quick
+
+# Check dependencies only
+make test-deps
+
+# Clean up test output files
+make clean
+```
+
+The test suite includes:
+- Unit tests for each tool
+- Integration tests for the full pipeline
+- Tests with various document types (simple, with tables, complex, German)
+- Error handling tests
+- Dependency validation
+
+See the [tests/README.md](tests/README.md) for detailed information about the test suite.
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit issues, feature requests, or pull requests.
+
+Before submitting changes, please run the test suite to ensure everything works correctly:
+
+```bash
+make test
+```
 
 ## License
 
