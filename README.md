@@ -63,6 +63,7 @@ A bash function that converts markdown files directly to PDF using Pandoc with o
 - Automatic preprocessing using `perplexity-preprocess-md.py`
 - Two-column landscape layout for saving paper, unless the markdown contains tables (tables enforce one-column output)
 - Option to force single-column layout even when no tables are present
+- Option to force landscape orientation even when tables are present
 - Proper citation processing with `--citeproc`
 - Uses LuaLaTeX engine for better Unicode support with fallback fonts
 - Professional document formatting using the Eisvogel template
@@ -86,6 +87,9 @@ perplexity-md-to-pdf --no-fallback-fonts document.md
 
 # Force single column layout
 perplexity-md-to-pdf --single-column document.md
+
+# Force landscape orientation even with tables
+perplexity-md-to-pdf --landscape document.md
 
 # Combine multiple options
 perplexity-md-to-pdf -l de -f "DejaVu Serif" --no-fallback-fonts --single-column document.md
@@ -303,7 +307,7 @@ perplexity-md-to-pdf -f "Computer Modern" document.md
 ### PDF Output Settings
 
 The `perplexity-md-to-pdf` function uses these default settings:
-- **Layout**: Two-column landscape (single-column portrait when tables are present or `--single-column` is used)
+- **Layout**: Two-column landscape (single-column portrait when tables are present or `--single-column` is used, unless `--landscape` is specified)
 - **Paper**: A4
 - **Margins**: 2.5cm
 - **Column separation**: 1cm

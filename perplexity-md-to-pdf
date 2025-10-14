@@ -4,6 +4,7 @@ perplexity-md-to-pdf() {
     local md_in=""
     local no_fallback_fonts=false
     local single_column=false
+    local force_landscape=false
     
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
@@ -24,8 +25,12 @@ perplexity-md-to-pdf() {
                 single_column=true
                 shift
                 ;;
+            --landscape)
+                force_landscape=true
+                shift
+                ;;
             -h|--help)
-                echo "Usage: perplexity-md-to-pdf [-l|--language LANGUAGE] [-f|--font FONT] [--no-fallback-fonts] [--single-column] \
+                echo "Usage: perplexity-md-to-pdf [-l|--language LANGUAGE] [-f|--font FONT] [--no-fallback-fonts] [--single-column] [--landscape] \
                     <markdown_file>"
                 echo "  -l, --language LANGUAGE  Language code for citations"
                 echo "                          (default: en-US)"
@@ -35,6 +40,7 @@ perplexity-md-to-pdf() {
                 echo "                          Use quotes for font names with spaces"
                 echo "  --no-fallback-fonts     Skip adding font fallback configuration to YAML"
                 echo "  --single-column         Force single column layout (default: two columns unless tables present)"
+                echo "  --landscape             Force landscape orientation even when tables are present"
                 echo "  -h, --help              Show this help message"
                 return 0
                 ;;
@@ -58,7 +64,7 @@ perplexity-md-to-pdf() {
     # Check if input file is provided
     if [[ -z "$md_in" ]]; then
         echo "Error: No input file specified" >&2
-        echo "Usage: perplexity-md-to-pdf [-l|--language LANGUAGE] [-f|--font FONT] [--no-fallback-fonts] [--single-column] \
+        echo "Usage: perplexity-md-to-pdf [-l|--language LANGUAGE] [-f|--font FONT] [--no-fallback-fonts] [--single-column] [--landscape] \
             <markdown_file>" >&2
         return 1
     fi
@@ -90,7 +96,22 @@ perplexity-md-to-pdf() {
         -V geometry:margin=2.5cm
     )
     
-    if [ "$has_tables" -gt 0 ] || [ "$single_column" = true ]; then
+    if [ "$force_landscape" = true ]; then
+        # Force landscape orientation regardless of tables
+        if [ "$has_tables" -gt 0 ]; then
+            # Use single column in landscape for documents with tables
+            pandoc_args+=(
+                -V geometry:landscape
+            )
+        else
+            # Use two columns in landscape for documents without tables
+            pandoc_args+=(
+                -V geometry:landscape
+                -V geometry:columnsep=1cm
+                -V classoption:twocolumn
+            )
+        fi
+    elif [ "$has_tables" -gt 0 ] || [ "$single_column" = true ]; then
         # Use single column with portrait orientation for documents with tables or when forced
         pandoc_args+=(
            -V geometry:portrait

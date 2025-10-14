@@ -25,6 +25,7 @@ class TestPerplexityMdToPdf(unittest.TestCase):
         font="FreeSans",
         no_fallback_fonts=False,
         single_column=False,
+        landscape=False,
     ):
         """Helper method to run the md-to-pdf script"""
         # Build the command string with all arguments
@@ -39,6 +40,8 @@ class TestPerplexityMdToPdf(unittest.TestCase):
             cmd_parts.append("--no-fallback-fonts")
         if single_column:
             cmd_parts.append("--single-column")
+        if landscape:
+            cmd_parts.append("--landscape")
 
         # Add input file
         cmd_parts.append(f"'{input_file}'")
@@ -190,6 +193,46 @@ class TestPerplexityMdToPdf(unittest.TestCase):
             if pdf_file.exists():
                 pdf_file.unlink()
 
+    def test_landscape_option(self):
+        """Test --landscape option"""
+        test_file = self.test_data_dir / "simple_document.md"
+        if test_file.exists():
+            result = self.run_md_to_pdf(str(test_file), landscape=True)
+
+            # Check that the script ran successfully
+            self.assertEqual(result.returncode, 0, f"Script failed: {result.stderr}")
+
+            # Check that PDF file was created
+            pdf_file = test_file.parent / "simple_document.pdf"
+            self.assertTrue(pdf_file.exists(), "PDF file was not created")
+
+            # Check that PDF file is not empty
+            self.assertGreater(pdf_file.stat().st_size, 0, "PDF file is empty")
+
+            # Clean up
+            if pdf_file.exists():
+                pdf_file.unlink()
+
+    def test_landscape_option_with_tables(self):
+        """Test --landscape option with document containing tables"""
+        test_file = self.test_data_dir / "document_with_tables.md"
+        if test_file.exists():
+            result = self.run_md_to_pdf(str(test_file), landscape=True)
+
+            # Check that the script ran successfully
+            self.assertEqual(result.returncode, 0, f"Script failed: {result.stderr}")
+
+            # Check that PDF file was created
+            pdf_file = test_file.parent / "document_with_tables.pdf"
+            self.assertTrue(pdf_file.exists(), "PDF file was not created")
+
+            # Check that PDF file is not empty
+            self.assertGreater(pdf_file.stat().st_size, 0, "PDF file is empty")
+
+            # Clean up
+            if pdf_file.exists():
+                pdf_file.unlink()
+
     def test_help_option(self):
         """Test help option"""
         cmd = [
@@ -204,6 +247,7 @@ class TestPerplexityMdToPdf(unittest.TestCase):
         self.assertIn("Usage:", result.stdout)
         self.assertIn("--language", result.stdout)
         self.assertIn("--font", result.stdout)
+        self.assertIn("--landscape", result.stdout)
 
     def test_no_input_file(self):
         """Test error handling when no input file is provided"""
