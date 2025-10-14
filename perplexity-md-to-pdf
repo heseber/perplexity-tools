@@ -103,6 +103,7 @@ perplexity-md-to-pdf() {
     pandoc_args+=(
         --template eisvogel
         --syntax-highlighting=idiomatic
+        --variable listings-disable-line-numbers=true
     )
     
     # Execute the command
