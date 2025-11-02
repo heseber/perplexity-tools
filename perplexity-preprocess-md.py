@@ -164,9 +164,15 @@ def preprocess_markdown(markdown_content, language="en-US", no_fallback_fonts=Fa
     # Always process math expressions and other transformations, even if no footnotes
     content_updated = markdown_content
 
-    # Fix math expressions - convert \$ ... \$ to $ ... $
-    # Equivalent to: sed -E 's/\\\$  *(([^\$]*|(\\[^$][^\$]*))*)  *\\\$/$\1$/g'
-    math_pattern = r"\\\$  *(([^\$]*|(\\[^$][^\$]*))*)  *\\\$"
+    # Fix math expressions - convert \$ ... \$ or $ ... $ (or mixed) to $ ... $
+    # Handles: \$ ... \$ , $ ... $ , \$ ... $ , $ ... \$
+    # Pattern explanation:
+    # - (?:\\\$|\$) matches opening dollar (escaped or unescaped)
+    # - \s* allows optional whitespace after opening dollar
+    # - (.*?) captures content non-greedily (will stop at first closing dollar)
+    # - \s* allows optional whitespace before closing dollar
+    # - (?:\\\$|\$) matches closing dollar (escaped or unescaped)
+    math_pattern = r"(?:\\\$|\$)\s*(.*?)\s*(?:\\\$|\$)"
     content_updated = re.sub(math_pattern, r"$\1$", content_updated)
 
     # Fix centered divs - convert <div style="text-align: center">content</div> and <div align="center">content</div> to LaTeX centering

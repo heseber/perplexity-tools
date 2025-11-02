@@ -25,7 +25,7 @@ A Python script that preprocesses markdown content to make it compatible with Pa
 **Features:**
 - Converts footnotes to proper Pandoc citations (`[^1]` → `[@ref1]`)
 - Consolidates duplicate references automatically
-- Fixes escaped math expressions (`\$ ... \$` → `$ ... $`)
+- Fixes math expressions by converting dollar signs to proper LaTeX math delimiters (handles escaped `\$`, unescaped `$`, and mixed combinations)
 - Converts HTML center divs to LaTeX centering commands
 - Adds proper YAML front matter with bibliography entries
 - Supports multiple languages for citations
